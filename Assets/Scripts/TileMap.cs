@@ -5,7 +5,10 @@ using UnityEngine;
 public class TileMap : MonoBehaviour {
 
     public int N;
-    public TileType[] tileTypes;
+    public TileType[] tileTypes;//Типы пола
+    public WallType[] wallTypes;//Типы стен
+    public GameObject floorsMassive;//Объект на сцене для группировки полов
+    public GameObject wallsMassive;//Объект на сцене для группировки стен
 	// Use this for initialization
 	void Start () {
         int i = 0, j = 0;
@@ -14,7 +17,19 @@ public class TileMap : MonoBehaviour {
         {
             for (j=0;j<N;j++)
             {
-                Instantiate(tileTypes[0].tileVisualPrefab, new Vector3( (j-i)*X, (i+j)*(-Y), 1), Quaternion.identity);
+                //Создаем клетку пола в нужной координате и делаем его дочерним
+                (Instantiate(tileTypes[0].tileVisualPrefab, new Vector3( (j-i)*X, (i+j)*(-Y), 1), Quaternion.identity)).transform.parent = floorsMassive.transform;
+                //Аналогично для стен
+                //Правые
+                if (i == 0)
+                {
+                    (Instantiate(wallTypes[0].wallVisualPrefab, new Vector3((j * X)+X/2.0f, (j * -Y) + Y/2.0f, 1-(j/10.0f) ), Quaternion.identity)).transform.parent= wallsMassive.transform;
+                }
+                //Левые
+                if (j == 0)
+                {
+                    (Instantiate(wallTypes[0].wallVisualPrefab, new Vector3(( (-i) * X) - X/2.0f, (i * -Y) + Y/2.0f, 1 - (j / 10.0f)), new Quaternion(0,180.0f,0,1.0f))).transform.parent=wallsMassive.transform;
+                }
             }
         }
 	}
