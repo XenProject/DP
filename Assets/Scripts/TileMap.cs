@@ -18,17 +18,17 @@ public class TileMap : MonoBehaviour {
             for (j=0;j<N;j++)
             {
                 //Создаем клетку пола в нужной координате и делаем его дочерним
-                (Instantiate(tileTypes[0].tileVisualPrefab, new Vector3( (j-i)*X, (i+j)*(-Y), 1), Quaternion.identity)).transform.parent = floorsMassive.transform;
+                (Instantiate(tileTypes[0].tileVisualPrefab, new Vector3( (j-i)*X, (i+j)*(-Y), 0), Quaternion.identity)).transform.parent = floorsMassive.transform;
                 //Аналогично для стен
                 //Правые
                 if (i == 0)
                 {
-                    (Instantiate(wallTypes[0].wallVisualPrefab, new Vector3((j * X)+X/2.0f, (j * -Y) + Y/2.0f, 1-(j/10.0f) ), Quaternion.identity)).transform.parent= wallsMassive.transform;
+                    (Instantiate(wallTypes[0].wallVisualPrefab, new Vector3((j * X)+X/2.0f, (j * -Y) + Y/2.0f, 0-(j/10.0f) ), Quaternion.identity)).transform.parent= wallsMassive.transform;
                 }
                 //Левые
                 if (j == 0)
                 {
-                    (Instantiate(wallTypes[0].wallVisualPrefab, new Vector3(( (-i) * X) - X/2.0f, (i * -Y) + Y/2.0f, 1 - (j / 10.0f)), new Quaternion(0,180.0f,0,1.0f))).transform.parent=wallsMassive.transform;
+                    (Instantiate(wallTypes[0].wallVisualPrefab, new Vector3(( (-i) * X) - X/2.0f, (i * -Y) + Y/2.0f, 0 - (j / 10.0f)), new Quaternion(0,180.0f,0,1.0f))).transform.parent=wallsMassive.transform;
                 }
             }
         }
