@@ -9,6 +9,7 @@ public class TileMap : MonoBehaviour {
     public WallType[] wallTypes;//Типы стен
     public GameObject floorsMassive;//Объект на сцене для группировки полов
     public GameObject wallsMassive;//Объект на сцене для группировки стен
+    public GameObject borderPrefab;
 	// Use this for initialization
 	void Start () {
         int i = 0, j = 0;
@@ -29,6 +30,14 @@ public class TileMap : MonoBehaviour {
                 if (j == 0)
                 {
                     (Instantiate(wallTypes[0].wallVisualPrefab, new Vector3(( (-i) * X) - X/2.0f, (i * -Y) + Y/2.0f, 0 - (j / 10.0f)), new Quaternion(0,180.0f,0,1.0f))).transform.parent=wallsMassive.transform;
+                }
+                if (i == N-1)
+                {
+                    Instantiate(borderPrefab, new Vector3((j - i) * X - X/2.0f, (i + j) * (-Y) - Y/2.0f, 0), new Quaternion(0,180.0f, 0, 1.0f) );
+                }
+                if (j == N-1)
+                {
+                    Instantiate(borderPrefab, new Vector3((j - i) * X + X / 2.0f, (i + j) * (-Y) - Y / 2.0f, 0), Quaternion.identity);
                 }
             }
         }
