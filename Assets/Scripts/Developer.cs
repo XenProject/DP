@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Developer : MonoBehaviour {
+public class Developer{
 
     private int _gold;
     private int _coding;

@@ -13,30 +13,20 @@ public class GameManager : MonoBehaviour {
     public GameObject wallsMassive;//Объект на сцене для группировки стен
     public GameObject borderPrefab;
     public GameObject creationPoint;
-    public GameObject devTimeText;
-    public GameObject GoldText;
-    public GameObject GamePriceText;
+    public GameObject GameName;
 
     public Game CurrentGame;
     public Developer Developer;
 
-    private GameObject gameName;
-    private GameObject createGameBut;
     private bool gameCreation = false;
-    private GameObject developSlider;
-    private GameObject newGameButton;
     private TimeSpan timeToDevelop = new TimeSpan(0,0,20);
 	// Use this for initialization
 	void Start () {
         Developer = new Developer();
         CurrentGame = new Game();
         TileMap();
-        devTimeText.GetComponent<Text>().text = "Development time: ";
-        if (timeToDevelop.Hours != 0) devTimeText.GetComponent<Text>().text += timeToDevelop.Hours.ToString() + "h ";
-        if (timeToDevelop.Minutes != 0) devTimeText.GetComponent<Text>().text += timeToDevelop.Minutes.ToString() + "m ";
-        if (timeToDevelop.Seconds != 0) devTimeText.GetComponent<Text>().text += timeToDevelop.Seconds.ToString() + "s";
-        GoldText.GetComponent<Text>().text = Developer.Gold.ToString();
-        GamePriceText.GetComponent<Text>().text = CurrentGame.Price.ToString();
+        Messenger.Broadcast<TimeSpan>("Change Develop Time", timeToDevelop);
+        Messenger.Broadcast<int>("Change Game Price", CurrentGame.Price);
     }
 	
 	// Update is called once per frame
@@ -46,24 +36,17 @@ public class GameManager : MonoBehaviour {
         {
             if( CurrentGame.DevelopEndTime > DateTime.Now)
             {
-                developSlider.GetComponent<Slider>().value = (float)( (timeToDevelop - (CurrentGame.DevelopEndTime - DateTime.Now) ).TotalSeconds / timeToDevelop.TotalSeconds);
-                developSlider.GetComponentInChildren<Text>().text = ((int)(developSlider.GetComponent<Slider>().value * 100)).ToString() + "%";
+                Messenger.Broadcast<float>("Change Dev Slider", (float)((timeToDevelop - (CurrentGame.DevelopEndTime - DateTime.Now)).TotalSeconds / timeToDevelop.TotalSeconds));
             }
             else
             {
                 gameCreation = false;
-                GameObject go = GameObject.Find("CreationPoints");
-                for(int  i = 0; i < go.transform.childCount; i++)
-                {
-                    DestroyImmediate(go.transform.GetChild(i));
-                }
-                newGameButton.SetActive(true);
-                developSlider.SetActive(false);
+                Messenger.Broadcast<bool>("Game Creation", gameCreation);
                 StopCoroutine("GeneratePoints");
                 CurrentGame.CalculateRating();
                 GetComponent<Developer>().AddGame(CurrentGame);
-                Debug.Log("Game Name: " + CurrentGame.Name + "\nBoost points: " + CurrentGame.BoostPoints + " Bugs: " + CurrentGame.Bugs + "\nAll Boost Points: " + CurrentGame.AllBoostPoints + "\nAll Points: " + CurrentGame.AllPoints);
-                Debug.Log("Rating: " + CurrentGame.Rating);
+                //Debug.Log("Game Name: " + CurrentGame.Name + "\nBoost points: " + CurrentGame.BoostPoints + " Bugs: " + CurrentGame.Bugs + "\nAll Boost Points: " + CurrentGame.AllBoostPoints + "\nAll Points: " + CurrentGame.AllPoints);
+                //Debug.Log("Rating: " + CurrentGame.Rating);
             }
         }
     }
@@ -103,32 +86,29 @@ public class GameManager : MonoBehaviour {
 
     public void ChangeProjectName()
     {
-        if(gameName==null) gameName = GameObject.Find("GameName");
-        if(createGameBut==null) createGameBut = GameObject.Find("CreateGame");
-        if (gameName.GetComponent<InputField>().text == "" || Developer.Gold < CurrentGame.Price)
+        if (GameName.GetComponent<InputField>().text == "" || Developer.Gold < CurrentGame.Price)
         {
-            createGameBut.GetComponent<Button>().interactable = false;
+            Messenger.Broadcast<bool>("Interact With Create Button", false);
         }
         else
         {
-            createGameBut.GetComponent<Button>().interactable = true;
+            Messenger.Broadcast<bool>("Interact With Create Button", true);
         }
     }
 
     public void CreateProject()
     {
+        gameCreation = true;
         CurrentGame = new Game();
-        newGameButton = GameObject.Find("NewGameButton");
-        newGameButton.SetActive(false);
-        developSlider = GameObject.Find("DevelopSlider");
-        developSlider.GetComponent<Slider>().value = 0.0f;
-        CurrentGame.Name = gameName.GetComponent<InputField>().text;
+        Messenger.Broadcast<bool>("Game Creation", gameCreation);
+        Messenger.Broadcast<float>("Change Dev Slider", 0.0f);
+
+        CurrentGame.Name = GameName.GetComponent<InputField>().text;
         CurrentGame.CalculateDevelopTime(timeToDevelop);
         CurrentGame.CalculateSynergy();
-        gameCreation = true;
         StartCoroutine("GeneratePoints");
         Developer.Gold -= CurrentGame.Price;
-        GoldText.GetComponent<Text>().text = Developer.Gold.ToString();
+        Messenger.Broadcast<int>("Change Gold", Developer.Gold);
     }
 
     IEnumerator GeneratePoints()
