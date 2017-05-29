@@ -5,30 +5,47 @@ using UnityEngine;
 
 public class Game : MonoBehaviour {
 
-    private string _platform = "PC";
-    private string _genre = "RPG";
-    private string _theme = "Adventure";
-    private string _name = "Default Game";
+    private Platform _platform;
+    private Genre _genre;
+    private Theme _theme;
+    private string _name;
     private DateTime _developEndTime;
-    private int _boostPoints = 0;
-    private int _bugs = 0;
-    private int _allPoints = 0;
-    private int _allBoostPoints = 0;
-    private float _synergy = 0.75f;
-    private float _rating = 0;
+    private int _boostPoints;
+    private int _bugs;
+    private int _allPoints;
+    private int _allBoostPoints;
+    private float _synergy;
+    private float _rating;
+    private int _price;
 
-    public string Platform
+    /********************************************/
+    public enum Platform
     {
-        get { return _platform; }
-        set { _platform = value; }
+        PC,
+        PS,
+        Xbox
     }
 
-    public string Genre
+    public enum Genre
     {
-        get { return _genre; }
-        set { _genre = value; }
+        RPG,
+        Action,
+        Strategy,
+        Simulation,
+        Shooter,
+        Sport,
+        Horror
     }
 
+    public enum Theme
+    {
+        Adventure,
+        Fantasy,
+        Football,
+        Economy,
+        Vampire
+    }
+    /*****************************************/
     public string Name
     {
         get { return _name; }
@@ -67,8 +84,8 @@ public class Game : MonoBehaviour {
 
     public float Synergy
     {
-        get{ return  _synergy; }
-        set{ _synergy = value ; }
+        get { return _synergy; }
+        set { _synergy = value; }
     }
 
     public float Rating
@@ -76,7 +93,29 @@ public class Game : MonoBehaviour {
         get { return _rating; }
         set { _rating = value; }
     }
-    /****************************************************/
+
+    public int Price
+    {
+        get { return _price; }
+        set { _price = value; }
+    }
+    /******************Constructor**********************************/
+    public Game()
+    {
+        _platform = 0;
+        _genre = 0;
+        _theme = 0;
+        _name = "Default";
+        _developEndTime = new DateTime(2050,5,31);
+        _boostPoints = 0;
+        _bugs = 0;
+        _allBoostPoints = 0;
+        _allPoints = 0;
+        _synergy = 0.75f;
+        _rating = 0;
+        _price = 700;
+    }
+    /*******************************************/
 
     public void CalculateDevelopTime(TimeSpan developTime)
     {
@@ -85,12 +124,12 @@ public class Game : MonoBehaviour {
 
     public void CalculateSynergy()
     {
-        if (_genre == "RPG" && _theme == "Adventure") _synergy = 1;
+        if (_genre == Genre.RPG && _theme == Theme.Adventure) _synergy = 1;
     }
 
     public void CalculateRating()
     {
-        _rating = (_synergy * ( ( (float)_boostPoints / _allBoostPoints) * 10) ) - (_bugs / 5.0f);
+        _rating = (_synergy * ( ( (float)_boostPoints / _allBoostPoints) * 10) ) - (_bugs / 3.0f) + UnityEngine.Random.Range(-1,2);
         if (_rating < 1) _rating = 1;
         if (_rating > 10) _rating = 10;
     }

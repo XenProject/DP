@@ -12,10 +12,14 @@ public class GameManager : MonoBehaviour {
     public GameObject floorsMassive;//Объект на сцене для группировки полов
     public GameObject wallsMassive;//Объект на сцене для группировки стен
     public GameObject borderPrefab;
-
     public GameObject creationPoint;
+    public GameObject devTimeText;
+    public GameObject GoldText;
+    public GameObject GamePriceText;
 
-    private Game game;
+    public Game CurrentGame;
+    public Developer Developer;
+
     private GameObject gameName;
     private GameObject createGameBut;
     private bool gameCreation = false;
@@ -24,33 +28,42 @@ public class GameManager : MonoBehaviour {
     private TimeSpan timeToDevelop = new TimeSpan(0,0,20);
 	// Use this for initialization
 	void Start () {
-        game = GetComponent<Game>();
+        Developer = new Developer();
+        CurrentGame = new Game();
         TileMap();
-	}
+        devTimeText.GetComponent<Text>().text = "Development time: ";
+        if (timeToDevelop.Hours != 0) devTimeText.GetComponent<Text>().text += timeToDevelop.Hours.ToString() + "h ";
+        if (timeToDevelop.Minutes != 0) devTimeText.GetComponent<Text>().text += timeToDevelop.Minutes.ToString() + "m ";
+        if (timeToDevelop.Seconds != 0) devTimeText.GetComponent<Text>().text += timeToDevelop.Seconds.ToString() + "s";
+        GoldText.GetComponent<Text>().text = Developer.Gold.ToString();
+        GamePriceText.GetComponent<Text>().text = CurrentGame.Price.ToString();
+    }
 	
 	// Update is called once per frame
 	void Update () {
+
         if (gameCreation)
         {
-            if( game.DevelopEndTime > DateTime.Now)
+            if( CurrentGame.DevelopEndTime > DateTime.Now)
             {
-                developSlider.GetComponent<Slider>().value = (float)( (timeToDevelop - (game.DevelopEndTime - DateTime.Now) ).TotalSeconds / timeToDevelop.TotalSeconds);
+                developSlider.GetComponent<Slider>().value = (float)( (timeToDevelop - (CurrentGame.DevelopEndTime - DateTime.Now) ).TotalSeconds / timeToDevelop.TotalSeconds);
                 developSlider.GetComponentInChildren<Text>().text = ((int)(developSlider.GetComponent<Slider>().value * 100)).ToString() + "%";
             }
             else
             {
+                gameCreation = false;
                 GameObject go = GameObject.Find("CreationPoints");
                 for(int  i = 0; i < go.transform.childCount; i++)
                 {
                     DestroyImmediate(go.transform.GetChild(i));
                 }
-                gameCreation = false;
                 newGameButton.SetActive(true);
                 developSlider.SetActive(false);
                 StopCoroutine("GeneratePoints");
-                game.CalculateRating();
-                Debug.Log("Game Name: " + game.Name + "\nBoost points: " + game.BoostPoints + " Bugs: " + game.Bugs + "\nAll Boost Points: " + game.AllBoostPoints + "\nAll Points: " + game.AllPoints);
-                Debug.Log("Rating: " + game.Rating);
+                CurrentGame.CalculateRating();
+                GetComponent<Developer>().AddGame(CurrentGame);
+                Debug.Log("Game Name: " + CurrentGame.Name + "\nBoost points: " + CurrentGame.BoostPoints + " Bugs: " + CurrentGame.Bugs + "\nAll Boost Points: " + CurrentGame.AllBoostPoints + "\nAll Points: " + CurrentGame.AllPoints);
+                Debug.Log("Rating: " + CurrentGame.Rating);
             }
         }
     }
@@ -92,7 +105,7 @@ public class GameManager : MonoBehaviour {
     {
         if(gameName==null) gameName = GameObject.Find("GameName");
         if(createGameBut==null) createGameBut = GameObject.Find("CreateGame");
-        if (gameName.GetComponent<InputField>().text == "")
+        if (gameName.GetComponent<InputField>().text == "" || Developer.Gold < CurrentGame.Price)
         {
             createGameBut.GetComponent<Button>().interactable = false;
         }
@@ -104,15 +117,18 @@ public class GameManager : MonoBehaviour {
 
     public void CreateProject()
     {
+        CurrentGame = new Game();
         newGameButton = GameObject.Find("NewGameButton");
         newGameButton.SetActive(false);
         developSlider = GameObject.Find("DevelopSlider");
-        gameCreation = true;
-        game.Name = gameName.GetComponent<InputField>().text;
-        game.CalculateDevelopTime(timeToDevelop);
         developSlider.GetComponent<Slider>().value = 0.0f;
-        game.CalculateSynergy();
+        CurrentGame.Name = gameName.GetComponent<InputField>().text;
+        CurrentGame.CalculateDevelopTime(timeToDevelop);
+        CurrentGame.CalculateSynergy();
+        gameCreation = true;
         StartCoroutine("GeneratePoints");
+        Developer.Gold -= CurrentGame.Price;
+        GoldText.GetComponent<Text>().text = Developer.Gold.ToString();
     }
 
     IEnumerator GeneratePoints()
@@ -122,7 +138,7 @@ public class GameManager : MonoBehaviour {
             if (UnityEngine.Random.Range(0, 2) == 1)
             {
                 Instantiate(creationPoint);
-                game.AllPoints += 1;
+                CurrentGame.AllPoints += 1;
             }
             //Debug.Log(UnityEngine.Random.Range(0, 2));
             yield return new WaitForSeconds(1.0f);

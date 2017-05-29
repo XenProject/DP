@@ -6,8 +6,8 @@ using UnityEngine.UI;
 public class CreationPoint : MonoBehaviour {
 
     private bool isGood = true;
-    private Game game;
 
+    private GameManager gameManager;
     private float aliveTime = 1.5f;
     private float deg;
     private float speed = 170.0f;
@@ -16,22 +16,22 @@ public class CreationPoint : MonoBehaviour {
     private float height;
 	// Use this for initialization
 	void Start () {
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         panel = GameObject.Find("CreationPoints");
-        game = GameObject.Find("GameManager").GetComponent<Game>();
         transform.SetParent(panel.transform);
         transform.localScale = new Vector3(1, 1, 1);
         width = panel.GetComponent<RectTransform>().rect.width;
         height = panel.GetComponent<RectTransform>().rect.height;
 
         transform.localPosition = new Vector3(Random.Range(-width/2.0f, width/2.0f), Random.Range(-height / 2.0f, 0), 0);
-        if (Random.Range(0,10)<=4)
+        if (Random.Range(0,10)<=1)
         {
             isGood = false;
         }
         if (isGood)
         {
             GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/UI/Buttons/boostbutton");
-            game.AllBoostPoints += 1;
+            gameManager.CurrentGame.AllBoostPoints += 1;
         }
         else
         {
@@ -67,11 +67,11 @@ public class CreationPoint : MonoBehaviour {
         DestroyImmediate(gameObject);
         if (isGood)
         {
-            game.BoostPoints += 1;
+            gameManager.CurrentGame.BoostPoints += 1;
         }
         else
         {
-            game.Bugs += 1;
+            gameManager.CurrentGame.Bugs += 1;
         }
     }
 }
