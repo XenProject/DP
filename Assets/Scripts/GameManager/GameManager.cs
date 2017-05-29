@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour {
 
@@ -10,32 +12,48 @@ public class GameManager : MonoBehaviour {
     public GameObject floorsMassive;//Объект на сцене для группировки полов
     public GameObject wallsMassive;//Объект на сцене для группировки стен
     public GameObject borderPrefab;
-    public GameObject DummyPrefab;
 
-    private float timer = 2.0f;
-    private GameObject dummy;
-    private float deg;
-    private float speed = 2.0f;
+    public GameObject creationPoint;
+
+    private Game game;
+    private GameObject gameName;
+    private GameObject createGameBut;
+    private bool gameCreation = false;
+    private GameObject developSlider;
+    private GameObject newGameButton;
+    private TimeSpan timeToDevelop = new TimeSpan(0,0,20);
 	// Use this for initialization
 	void Start () {
-        dummy = Instantiate(DummyPrefab, new Vector3(0,0,-0.3f), Quaternion.identity);
-        Destroy(dummy,timer);
+        game = GetComponent<Game>();
         TileMap();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        if (dummy != null)
+        if (gameCreation)
         {
-            deg = Mathf.Deg2Rad * Random.Range(0.0f, 180.0f);
-            dummy.transform.position += new Vector3( speed*Time.deltaTime*Mathf.Cos(deg), speed*Time.deltaTime * Mathf.Sin(deg), 0.0f);
+            if( game.DevelopEndTime > DateTime.Now)
+            {
+                developSlider.GetComponent<Slider>().value = (float)( (timeToDevelop - (game.DevelopEndTime - DateTime.Now) ).TotalSeconds / timeToDevelop.TotalSeconds);
+                developSlider.GetComponentInChildren<Text>().text = ((int)(developSlider.GetComponent<Slider>().value * 100)).ToString() + "%";
+            }
+            else
+            {
+                GameObject go = GameObject.Find("CreationPoints");
+                for(int  i = 0; i < go.transform.childCount; i++)
+                {
+                    DestroyImmediate(go.transform.GetChild(i));
+                }
+                gameCreation = false;
+                newGameButton.SetActive(true);
+                developSlider.SetActive(false);
+                StopCoroutine("GeneratePoints");
+                game.CalculateRating();
+                Debug.Log("Game Name: " + game.Name + "\nBoost points: " + game.BoostPoints + " Bugs: " + game.Bugs + "\nAll Boost Points: " + game.AllBoostPoints + "\nAll Points: " + game.AllPoints);
+                Debug.Log("Rating: " + game.Rating);
+            }
         }
-        else
-        {
-            dummy = Instantiate(DummyPrefab, new Vector3(0, 0, -0.3f), Quaternion.identity);
-            Destroy(dummy, timer);
-        }
-	}
+    }
 
     void TileMap()
     {
@@ -60,13 +78,54 @@ public class GameManager : MonoBehaviour {
                 }
                 if (i == N - 1)
                 {
-                    Instantiate(borderPrefab, new Vector3((j - i) * X - X / 2.0f, (i + j) * (-Y) - Y / 2.0f, 0), new Quaternion(0, 180.0f, 0, 1.0f));
+                    Instantiate(borderPrefab, new Vector3((j - i) * X - X / 2.0f, (i + j) * (-Y) - Y / 2.0f, -0.1f), new Quaternion(0, 180.0f, 0, 1.0f));
                 }
                 if (j == N - 1)
                 {
-                    Instantiate(borderPrefab, new Vector3((j - i) * X + X / 2.0f, (i + j) * (-Y) - Y / 2.0f, 0), Quaternion.identity);
+                    Instantiate(borderPrefab, new Vector3((j - i) * X + X / 2.0f, (i + j) * (-Y) - Y / 2.0f, -0.1f), Quaternion.identity);
                 }
             }
+        }
+    }
+
+    public void ChangeProjectName()
+    {
+        if(gameName==null) gameName = GameObject.Find("GameName");
+        if(createGameBut==null) createGameBut = GameObject.Find("CreateGame");
+        if (gameName.GetComponent<InputField>().text == "")
+        {
+            createGameBut.GetComponent<Button>().interactable = false;
+        }
+        else
+        {
+            createGameBut.GetComponent<Button>().interactable = true;
+        }
+    }
+
+    public void CreateProject()
+    {
+        newGameButton = GameObject.Find("NewGameButton");
+        newGameButton.SetActive(false);
+        developSlider = GameObject.Find("DevelopSlider");
+        gameCreation = true;
+        game.Name = gameName.GetComponent<InputField>().text;
+        game.CalculateDevelopTime(timeToDevelop);
+        developSlider.GetComponent<Slider>().value = 0.0f;
+        game.CalculateSynergy();
+        StartCoroutine("GeneratePoints");
+    }
+
+    IEnumerator GeneratePoints()
+    {
+        while (true)
+        {
+            if (UnityEngine.Random.Range(0, 2) == 1)
+            {
+                Instantiate(creationPoint);
+                game.AllPoints += 1;
+            }
+            //Debug.Log(UnityEngine.Random.Range(0, 2));
+            yield return new WaitForSeconds(1.0f);
         }
     }
 }
