@@ -13,38 +13,44 @@ public class GameManager : MonoBehaviour {
     public GameObject wallsMassive;//Объект на сцене для группировки стен
     public GameObject borderPrefab;
     public GameObject creationPoint;
-    public GameObject GameName;
-
-    public Game CurrentGame;
-    public Developer Developer;
+    
+    public Developer developer;
+    public Development development;
 
     private bool gameCreation = false;
-    private TimeSpan timeToDevelop = new TimeSpan(0,0,20);
+    private CreateManager createManager;
+    private Game developGame;
 	// Use this for initialization
 	void Start () {
-        Developer = new Developer();
-        CurrentGame = new Game();
+        createManager = GetComponent<CreateManager>();
+        developer = new Developer();
         TileMap();
-        Messenger.Broadcast<TimeSpan>("Change Develop Time", timeToDevelop);
-        Messenger.Broadcast<int>("Change Game Price", CurrentGame.Price);
+        Messenger.Broadcast<int>("Change Gold", developer.Gold);
     }
 	
 	// Update is called once per frame
 	void Update () {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            Debug.Log(developer.Games[0].Info());
+        }
 
+        //Возможно перенесу все это в корутин!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!(оптимизация)
         if (gameCreation)
         {
-            if( CurrentGame.DevelopEndTime > DateTime.Now)
+            if( development.DevelopmentEndTime > DateTime.Now)
             {
-                Messenger.Broadcast<float>("Change Dev Slider", (float)((timeToDevelop - (CurrentGame.DevelopEndTime - DateTime.Now)).TotalSeconds / timeToDevelop.TotalSeconds));
+                Messenger.Broadcast<float>("Change Dev Slider", (float)((createManager.timeToDev - 
+                    (development.DevelopmentEndTime - DateTime.Now)).TotalSeconds / createManager.timeToDev.TotalSeconds));
             }
             else
             {
                 gameCreation = false;
                 Messenger.Broadcast<bool>("Game Creation", gameCreation);
                 StopCoroutine("GeneratePoints");
-                CurrentGame.CalculateRating();
-                GetComponent<Developer>().AddGame(CurrentGame);
+                development.PublishGame(developer, developGame );
+                developGame = null;
+                development = null;
                 //Debug.Log("Game Name: " + CurrentGame.Name + "\nBoost points: " + CurrentGame.BoostPoints + " Bugs: " + CurrentGame.Bugs + "\nAll Boost Points: " + CurrentGame.AllBoostPoints + "\nAll Points: " + CurrentGame.AllPoints);
                 //Debug.Log("Rating: " + CurrentGame.Rating);
             }
@@ -84,31 +90,16 @@ public class GameManager : MonoBehaviour {
         }
     }
 
-    public void ChangeProjectName()
-    {
-        if (GameName.GetComponent<InputField>().text == "" || Developer.Gold < CurrentGame.Price)
-        {
-            Messenger.Broadcast<bool>("Interact With Create Button", false);
-        }
-        else
-        {
-            Messenger.Broadcast<bool>("Interact With Create Button", true);
-        }
-    }
-
     public void CreateProject()
     {
         gameCreation = true;
-        CurrentGame = new Game();
+        development = new Development(createManager.timeToDev);
+        developGame = new Game(createManager.curPlatform, createManager.curGenre, createManager.curTheme, createManager.gameNameInput.text);
         Messenger.Broadcast<bool>("Game Creation", gameCreation);
         Messenger.Broadcast<float>("Change Dev Slider", 0.0f);
-
-        CurrentGame.Name = GameName.GetComponent<InputField>().text;
-        CurrentGame.CalculateDevelopTime(timeToDevelop);
-        CurrentGame.CalculateSynergy();
+        Messenger.Broadcast<int>("Change Gold", developer.Gold);
         StartCoroutine("GeneratePoints");
-        Developer.Gold -= CurrentGame.Price;
-        Messenger.Broadcast<int>("Change Gold", Developer.Gold);
+        createManager.gameNameInput.text = "";
     }
 
     IEnumerator GeneratePoints()
@@ -118,7 +109,7 @@ public class GameManager : MonoBehaviour {
             if (UnityEngine.Random.Range(0, 2) == 1)
             {
                 Instantiate(creationPoint);
-                CurrentGame.AllPoints += 1;
+                development.AllPoints += 1;
             }
             //Debug.Log(UnityEngine.Random.Range(0, 2));
             yield return new WaitForSeconds(1.0f);

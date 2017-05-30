@@ -31,7 +31,7 @@ public class CreationPoint : MonoBehaviour {
         if (isGood)
         {
             GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/UI/Buttons/boostbutton");
-            gameManager.CurrentGame.AllBoostPoints += 1;
+            gameManager.development.AllBoostPoints += 1;
         }
         else
         {
@@ -67,11 +67,11 @@ public class CreationPoint : MonoBehaviour {
         DestroyImmediate(gameObject);
         if (isGood)
         {
-            gameManager.CurrentGame.BoostPoints += 1;
+            gameManager.development.BoostPoints += 1;
         }
         else
         {
-            gameManager.CurrentGame.Bugs += 1;
+            gameManager.development.Bugs += 1;
         }
     }
 }

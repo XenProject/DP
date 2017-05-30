@@ -47,6 +47,7 @@ public class Developer{
         _coding = 0;
         _design = 0;
         _creative = 0;
+        _games = new List<Game>();
     }
     /******************************************************/
     public void AddGame(Game game)

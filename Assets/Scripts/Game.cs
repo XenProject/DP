@@ -9,14 +9,8 @@ public class Game{
     private Genre _genre;
     private Theme _theme;
     private string _name;
-    private DateTime _developEndTime;
-    private int _boostPoints;
-    private int _bugs;
-    private int _allPoints;
-    private int _allBoostPoints;
     private float _synergy;
     private float _rating;
-    private int _price;
 
     /********************************************/
     public enum Platform
@@ -52,36 +46,6 @@ public class Game{
         set { _name = value; }
     }
 
-    public int BoostPoints
-    {
-        get { return _boostPoints; }
-        set { _boostPoints = value; }
-    }
-
-    public int Bugs
-    {
-        get { return _bugs; }
-        set { _bugs = value; }
-    }
-
-    public int AllPoints
-    {
-        get { return _allPoints; }
-        set { _allPoints = value; }
-    }
-
-    public int AllBoostPoints
-    {
-        get { return _allBoostPoints; }
-        set { _allBoostPoints = value; }
-    }
-
-    public DateTime DevelopEndTime
-    {
-        get { return _developEndTime; }
-        set { _developEndTime = value; }
-    }
-
     public float Synergy
     {
         get { return _synergy; }
@@ -93,12 +57,6 @@ public class Game{
         get { return _rating; }
         set { _rating = value; }
     }
-
-    public int Price
-    {
-        get { return _price; }
-        set { _price = value; }
-    }
     /******************Constructor**********************************/
     public Game()
     {
@@ -106,31 +64,36 @@ public class Game{
         _genre = 0;
         _theme = 0;
         _name = "Default";
-        _developEndTime = new DateTime(2050,5,31);
-        _boostPoints = 0;
-        _bugs = 0;
-        _allBoostPoints = 0;
-        _allPoints = 0;
-        _synergy = 0.75f;
         _rating = 0;
-        _price = 700;
+        CalculateSynergy();
+    }
+
+    public Game(Platform platform, Genre genre, Theme theme, string name)
+    {
+        _platform = platform;
+        _genre = genre;
+        _theme = theme;
+        _name = name;
+        _rating = 0;
+        CalculateSynergy();
     }
     /*******************************************/
 
-    public void CalculateDevelopTime(TimeSpan developTime)
-    {
-        _developEndTime = DateTime.Now + developTime;
-    }
-
     public void CalculateSynergy()
     {
-        if (_genre == Genre.RPG && _theme == Theme.Adventure) _synergy = 1;
+        if (_genre == Genre.RPG && _theme == Theme.Adventure)
+        {
+            _synergy = 1;
+        }
+        else
+        {
+            _synergy = 0.75f;
+        }
     }
 
-    public void CalculateRating()
+    public string Info()
     {
-        _rating = (_synergy * ( ( (float)_boostPoints / _allBoostPoints) * 10) ) - (_bugs / 3.0f) + UnityEngine.Random.Range(-1,2);
-        if (_rating < 1) _rating = 1;
-        if (_rating > 10) _rating = 10;
+        return "Game Name: " + this._name + "\nPlatform: " + this._platform.ToString() + "\nGenre/Theme: " + this._genre.ToString()
+            + "/" + this._theme.ToString() + "\nRating: " + this._rating.ToString();
     }
 }

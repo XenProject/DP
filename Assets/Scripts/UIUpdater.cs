@@ -6,67 +6,59 @@ using UnityEngine.UI;
 
 public class UIUpdater : MonoBehaviour {
 
-    public GameObject DeveloperGoldText;
-    public GameObject GamePriceText;
-    public GameObject DevelopSlider;
-    public GameObject NewGameButton;
-    public GameObject CreateGameBut;
-    public GameObject CreationPointsPanel;
-    public GameObject DevTimeText;
-	// Use this for initialization
-	void Awake () {
+    public Text developerGoldText;
+    public Text devTimeText;
+
+    public GameObject creationPointsPanel;
+    public GameObject newGameButton;
+    public GameObject developSlider;
+    public GameObject gameCreationPanel;
+    // Use this for initialization
+    void Awake () {
         Messenger.AddListener<int>("Change Gold", OnChangeGold);
-        Messenger.AddListener<int>("Change Game Price", OnChangeGamePrice);
         Messenger.AddListener<float>("Change Dev Slider", OnChangeDevSlider);
         Messenger.AddListener<bool>("Game Creation", GameCreation);
-        Messenger.AddListener<bool>("Interact With Create Button", InteractWithCreateButton);
         Messenger.AddListener<TimeSpan>("Change Develop Time", OnChangeTimeOfDevelop);
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update () {
 		
 	}
 
     void OnChangeGold(int gold)
     {
-        DeveloperGoldText.GetComponent<Text>().text = gold.ToString();
-    }
-
-    void OnChangeGamePrice(int price)
-    {
-        GamePriceText.GetComponent<Text>().text = price.ToString();
+        developerGoldText.text = gold.ToString();
     }
 
     void OnChangeDevSlider(float value)
     {
-        DevelopSlider.GetComponent<Slider>().value = value;
-        DevelopSlider.GetComponentInChildren<Text>().text = ((int)(DevelopSlider.GetComponent<Slider>().value * 100)).ToString() + "%";
+        developSlider.GetComponent<Slider>().value = value;
+        developSlider.GetComponentInChildren<Text>().text = ((int)(developSlider.GetComponent<Slider>().value * 100)).ToString() + "%";
     }
 
     void GameCreation(bool isCreation)
     {
-        NewGameButton.SetActive(!isCreation);
-        DevelopSlider.SetActive(isCreation);
+        newGameButton.SetActive(!isCreation);
+        developSlider.SetActive(isCreation);
         if (!isCreation)
         {
-            for (int i = 0; i < CreationPointsPanel.transform.childCount; i++)
+            for (int i = 0; i < creationPointsPanel.transform.childCount; i++)
             {
-                DestroyImmediate(CreationPointsPanel.transform.GetChild(i));
+                DestroyImmediate(creationPointsPanel.transform.GetChild(i).gameObject);
             }
         }
-    }
-
-    void InteractWithCreateButton(bool value)
-    {
-        CreateGameBut.GetComponent<Button>().interactable = value;
+        else
+        {
+            gameCreationPanel.SetActive(false);
+        }
     }
 
     void OnChangeTimeOfDevelop(TimeSpan timeToDevelop)
     {
-        DevTimeText.GetComponent<Text>().text = "Development time: ";
-        if (timeToDevelop.Hours != 0) DevTimeText.GetComponent<Text>().text += timeToDevelop.Hours.ToString() + "h ";
-        if (timeToDevelop.Minutes != 0) DevTimeText.GetComponent<Text>().text += timeToDevelop.Minutes.ToString() + "m ";
-        if (timeToDevelop.Seconds != 0) DevTimeText.GetComponent<Text>().text += timeToDevelop.Seconds.ToString() + "s";
+        devTimeText.text = "Development time: ";
+        if (timeToDevelop.Hours != 0) devTimeText.text += timeToDevelop.Hours.ToString() + "h ";
+        if (timeToDevelop.Minutes != 0) devTimeText.text += timeToDevelop.Minutes.ToString() + "m ";
+        if (timeToDevelop.Seconds != 0) devTimeText.text += timeToDevelop.Seconds.ToString() + "s";
     }
 }
