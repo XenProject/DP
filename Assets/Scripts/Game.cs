@@ -3,14 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class Game{
 
-    private Platform _platform;
-    private Genre _genre;
-    private Theme _theme;
-    private string _name;
-    private float _synergy;
-    private float _rating;
+    public Platform platform;
+    public Genre genre;
+    public Theme theme;
+    public string Name;
+    public float Synergy;
+    public float Rating;
 
     /********************************************/
     public enum Platform
@@ -40,60 +41,43 @@ public class Game{
         Vampire
     }
     /*****************************************/
-    public string Name
-    {
-        get { return _name; }
-        set { _name = value; }
-    }
-
-    public float Synergy
-    {
-        get { return _synergy; }
-        set { _synergy = value; }
-    }
-
-    public float Rating
-    {
-        get { return _rating; }
-        set { _rating = value; }
-    }
     /******************Constructor**********************************/
     public Game()
     {
-        _platform = 0;
-        _genre = 0;
-        _theme = 0;
-        _name = "Default";
-        _rating = 0;
+        platform = 0;
+        genre = 0;
+        theme = 0;
+        Name = "Default";
+        Rating = 0;
         CalculateSynergy();
     }
 
     public Game(Platform platform, Genre genre, Theme theme, string name)
     {
-        _platform = platform;
-        _genre = genre;
-        _theme = theme;
-        _name = name;
-        _rating = 0;
+        this.platform = platform;
+        this.genre = genre;
+        this.theme = theme;
+        Name = name;
+        Rating = 0;
         CalculateSynergy();
     }
     /*******************************************/
 
     public void CalculateSynergy()
     {
-        if (_genre == Genre.RPG && _theme == Theme.Adventure)
+        if (genre == Genre.RPG && theme == Theme.Adventure)
         {
-            _synergy = 1;
+            Synergy = 1;
         }
         else
         {
-            _synergy = 0.75f;
+            Synergy = 0.75f;
         }
     }
 
     public string Info()
     {
-        return "Game Name: " + this._name + "\nPlatform: " + this._platform.ToString() + "\nGenre/Theme: " + this._genre.ToString()
-            + "/" + this._theme.ToString() + "\nRating: " + this._rating.ToString();
+        return "Game Name: " + this.Name + "\nPlatform: " + this.platform.ToString() + "\nGenre/Theme: " + this.genre.ToString()
+            + "/" + this.theme.ToString() + "\nRating: " + this.Rating.ToString("0.00");
     }
 }

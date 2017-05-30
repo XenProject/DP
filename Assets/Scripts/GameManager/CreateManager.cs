@@ -7,15 +7,15 @@ using UnityEngine.UI;
 public class CreateManager : MonoBehaviour {
 
     public int goldToDevelopment;
-    public TimeSpan timeToDev = new TimeSpan(0, 0, 20);
+    public TimeSpan timeToDev = new TimeSpan(0, 0, 30);
 
     public Dropdown platform;
     public Dropdown genre;
     public Dropdown theme;
     public InputField gameNameInput;
     public Button createBut;
-    public Text gamePriceText;
 
+    public Text gamePriceText;
     public Game.Platform curPlatform;
     public Game.Genre curGenre;
     public Game.Theme curTheme;
@@ -28,6 +28,8 @@ public class CreateManager : MonoBehaviour {
         GenresInit();
         ThemesInit();
         OnPlatformChange();//Для инициализации золота на проект
+        OnGenreChange();
+        OnThemeChange();
         gamePriceText.text = goldToDevelopment.ToString();
 
         platform.onValueChanged.AddListener(delegate { OnPlatformChange(); });
@@ -35,6 +37,8 @@ public class CreateManager : MonoBehaviour {
         theme.onValueChanged.AddListener(delegate { OnThemeChange(); });
         gameNameInput.onValueChanged.AddListener(delegate { OnGameNameChange(); });
         createBut.onClick.AddListener(delegate { OnGameCreationClicked(); });
+
+        Messenger.Broadcast<TimeSpan>("Change Develop Time", timeToDev);
     }
 	
 	// Update is called once per frame

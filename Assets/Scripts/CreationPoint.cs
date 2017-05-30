@@ -47,6 +47,11 @@ public class CreationPoint : MonoBehaviour {
         PointMotion();
     }
 
+    private void OnMouseDown()
+    {
+        Clicked();
+    }
+
     void PointMotion()
     {
         Vector3 pos = transform.localPosition;

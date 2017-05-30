@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,18 +24,21 @@ public class GameManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         createManager = GetComponent<CreateManager>();
-        developer = new Developer();
         TileMap();
+        if (PlayerPrefs.HasKey("Developer"))
+        {
+            Load();
+            Messenger.Broadcast<Developer>("Update Game List", developer);
+        }
+        else
+        {
+            developer = new Developer();
+        }
         Messenger.Broadcast<int>("Change Gold", developer.Gold);
     }
 	
 	// Update is called once per frame
 	void Update () {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            Debug.Log(developer.Games[0].Info());
-        }
-
         //Возможно перенесу все это в корутин!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!(оптимизация)
         if (gameCreation)
         {
@@ -49,6 +53,7 @@ public class GameManager : MonoBehaviour {
                 Messenger.Broadcast<bool>("Game Creation", gameCreation);
                 StopCoroutine("GeneratePoints");
                 development.PublishGame(developer, developGame );
+                Messenger.Broadcast<Game>("Publish Game", developGame);
                 developGame = null;
                 development = null;
                 //Debug.Log("Game Name: " + CurrentGame.Name + "\nBoost points: " + CurrentGame.BoostPoints + " Bugs: " + CurrentGame.Bugs + "\nAll Boost Points: " + CurrentGame.AllBoostPoints + "\nAll Points: " + CurrentGame.AllPoints);
@@ -56,6 +61,18 @@ public class GameManager : MonoBehaviour {
             }
         }
     }
+
+    void OnApplicationQuit()
+    {
+        Save();
+    }
+
+#if !UNITY_EDITOR && UNITY_ANDROID
+    private void OnApplicationPause(bool pause)
+    {
+        Save();
+    }
+#endif
 
     void TileMap()
     {
@@ -99,7 +116,33 @@ public class GameManager : MonoBehaviour {
         Messenger.Broadcast<float>("Change Dev Slider", 0.0f);
         Messenger.Broadcast<int>("Change Gold", developer.Gold);
         StartCoroutine("GeneratePoints");
-        createManager.gameNameInput.text = "";
+    }
+
+    void Save()
+    {
+        PlayerPrefs.SetString( "Developer", JsonUtility.ToJson(developer) );
+        if (gameCreation)
+        {
+            PlayerPrefs.SetInt("GameCreation", 1);
+            PlayerPrefs.SetString("Development", JsonConvert.SerializeObject(development) );
+            PlayerPrefs.SetString("DevelopGame", JsonUtility.ToJson(developGame) );
+        }
+        else PlayerPrefs.SetInt("GameCreation", 0);
+        Debug.Log(JsonUtility.ToJson(developer));
+    }
+
+    void Load()
+    {
+        Debug.Log("Load!");
+        developer = JsonUtility.FromJson<Developer>(PlayerPrefs.GetString("Developer"));
+        if(PlayerPrefs.GetInt("GameCreation") == 1)
+        {
+            developGame = JsonUtility.FromJson<Game>(PlayerPrefs.GetString("DevelopGame"));
+            development = JsonConvert.DeserializeObject<Development>(PlayerPrefs.GetString("Development"));
+            StartCoroutine("GeneratePoints");
+            gameCreation = true;
+            Messenger.Broadcast<bool>("Game Creation", gameCreation);
+        }
     }
 
     IEnumerator GeneratePoints()

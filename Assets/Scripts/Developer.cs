@@ -1,57 +1,29 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Developer{
+[Serializable]
+public class Developer {
 
-    private int _gold;
-    private int _coding;
-    private int _design;
-    private int _creative;
-    public List<Game> _games;
+    public int Gold;
+    public int Coding;
+    public int Design;
+    public int Creative;
+    public List<Game> Games;
 
-    /***************************************************/
-	public int Coding
-    {
-        get { return _coding; }
-        set { _coding = value; }
-    }
-
-    public int Design
-    {
-        get { return _design; }
-        set { _design = value; }
-    }
-
-    public int Creative
-    {
-        get { return _creative; }
-        set { _creative = value; }
-    }
-
-    public int Gold
-    {
-        get { return _gold; }
-        set { _gold = value; }
-    }
-
-    public List<Game> Games
-    {
-        get { return _games; }
-        set { _games = value; }
-    }
     /******************************************************/
     public Developer()
     {
-        _gold = 1500;
-        _coding = 0;
-        _design = 0;
-        _creative = 0;
-        _games = new List<Game>();
+        Gold = 1500;
+        Coding = 0;
+        Design = 0;
+        Creative = 0;
+        Games = new List<Game>();
     }
     /******************************************************/
     public void AddGame(Game game)
     {
-        _games.Add(game);
+        Games.Add(game);
     }
 }
