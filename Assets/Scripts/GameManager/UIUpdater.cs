@@ -16,6 +16,12 @@ public class UIUpdater : MonoBehaviour {
 
     public GameObject gameListPanel;
     public GameObject gamePrefab;
+
+    private GameManager gm;
+    public Text codeText;
+    public Text designText;
+    public Text creativeText;
+    public Text soundText;
     // Use this for initialization
     void Awake () {
         Messenger.AddListener<int>("Change Gold", OnChangeGold);
@@ -24,6 +30,12 @@ public class UIUpdater : MonoBehaviour {
         Messenger.AddListener<TimeSpan>("Change Develop Time", OnChangeTimeOfDevelop);
         Messenger.AddListener<Game>("Publish Game", OnPublishGame);
         Messenger.AddListener<Developer>("Update Game List", UpdateGameList);
+        Messenger.AddListener("Update Stats", UpdateStats);
+    }
+
+    void Start()
+    {
+        gm = gameObject.GetComponent<GameManager>();
     }
 
     // Update is called once per frame
@@ -90,5 +102,19 @@ public class UIUpdater : MonoBehaviour {
             go.GetComponentInChildren<Text>().text = developer.Games[i].Info();
             go.transform.GetChild(1).GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Platforms/" + developer.Games[i].platform.ToString());
         }
+    }
+
+    void UpdateStats()
+    {
+        if(gm == null) gm = gameObject.GetComponent<GameManager>();
+        codeText.text = gm.developer.Coding.ToString();
+        designText.text = gm.developer.Design.ToString();
+        creativeText.text = gm.developer.Creative.ToString();
+        soundText.text = gm.developer.Sound.ToString();
+    }
+
+    public void ChangeStateGameList()
+    {
+        gameListPanel.transform.parent.gameObject.SetActive(!(gameListPanel.transform.parent.gameObject.activeInHierarchy));
     }
 }

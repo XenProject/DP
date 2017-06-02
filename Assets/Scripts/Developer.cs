@@ -10,6 +10,7 @@ public class Developer {
     public int Coding;
     public int Design;
     public int Creative;
+    public int Sound;
     public List<Game> Games;
 
     /******************************************************/
@@ -19,6 +20,7 @@ public class Developer {
         Coding = 0;
         Design = 0;
         Creative = 0;
+        Sound = 0;
         Games = new List<Game>();
     }
     /******************************************************/

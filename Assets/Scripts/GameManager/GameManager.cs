@@ -35,10 +35,16 @@ public class GameManager : MonoBehaviour {
             developer = new Developer();
         }
         Messenger.Broadcast<int>("Change Gold", developer.Gold);
+        Messenger.Broadcast("Update Stats");
     }
 	
 	// Update is called once per frame
 	void Update () {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            developer.AddGame(developer.Games[developer.Games.Count-1]);
+            Messenger.Broadcast<Developer>("Update Game List", developer);
+        }
         //Возможно перенесу все это в корутин!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!(оптимизация)
         if (gameCreation)
         {
@@ -66,13 +72,12 @@ public class GameManager : MonoBehaviour {
     {
         Save();
     }
-
-#if !UNITY_EDITOR && UNITY_ANDROID
-    private void OnApplicationPause(bool pause)
+    
+    void OnApplicationPause(bool pause)
     {
-        Save();
+        if(pause)
+            Save();
     }
-#endif
 
     void TileMap()
     {
@@ -112,6 +117,7 @@ public class GameManager : MonoBehaviour {
         gameCreation = true;
         development = new Development(createManager.timeToDev);
         developGame = new Game(createManager.curPlatform, createManager.curGenre, createManager.curTheme, createManager.gameNameInput.text);
+        createManager.gameNameInput.text = "";
         Messenger.Broadcast<bool>("Game Creation", gameCreation);
         Messenger.Broadcast<float>("Change Dev Slider", 0.0f);
         Messenger.Broadcast<int>("Change Gold", developer.Gold);
