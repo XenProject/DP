@@ -23,14 +23,35 @@
             "CurLvl":0,
             "MaxLvl":3
          },
+		 {
+            "Name":"I know (the) code",
+            "IconPath":"Sprites/UI/Talants/Code/talant3",
+            "ReqCode":10,
+            "ReqDesign":0,
+            "ReqCreative":0,
+            "ReqSound":10,
+            "ReqTalant":"Optimization",
+            "ReqGold":0,
+            "Mods":[
+               {
+                  "Name":2,
+                  "BaseRatio":5,
+				  "RatioPerLvl":5,
+				  "BuffedRatio": 0
+               }
+            ],
+            "Description":"Decrease bug chance and increase chance boost 6/10 %",
+            "CurLvl":0,
+            "MaxLvl":2
+         },
          {
             "Name":"Bug shall not pass",
             "IconPath":"Sprites/UI/Talants/Code/talant2",
             "ReqCode":3,
-            "ReqDesign":3,
-            "ReqCreative":0,
+            "ReqDesign":0,
+            "ReqCreative":3,
             "ReqSound":0,
-            "ReqTalant":"Optimization",
+            "ReqTalant":"I know (the) code",
             "ReqGold":0,
             "Mods":[
                {

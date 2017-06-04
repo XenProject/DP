@@ -227,23 +227,23 @@ public class GameManager : MonoBehaviour {
         {
             if (curTalant.ReqCode != 0)
             {
-                stats[1].text = curTalant.ReqCode.ToString();
-                stats[1].transform.parent.gameObject.SetActive(true);
+                stats[0].text = curTalant.ReqCode.ToString();
+                stats[0].transform.parent.gameObject.SetActive(true);
             }
             if (curTalant.ReqDesign != 0)
             {
-                stats[2].text = curTalant.ReqDesign.ToString();
-                stats[2].transform.parent.gameObject.SetActive(true);
+                stats[1].text = curTalant.ReqDesign.ToString();
+                stats[1].transform.parent.gameObject.SetActive(true);
             }
             if (curTalant.ReqCreative != 0)
             {
-                stats[3].text = curTalant.ReqCreative.ToString();
-                stats[3].transform.parent.gameObject.SetActive(true);
+                stats[2].text = curTalant.ReqCreative.ToString();
+                stats[2].transform.parent.gameObject.SetActive(true);
             }
             if (curTalant.ReqSound != 0)
             {
-                stats[4].text = curTalant.ReqSound.ToString();
-                stats[4].transform.parent.gameObject.SetActive(true);
+                stats[3].text = curTalant.ReqSound.ToString();
+                stats[3].transform.parent.gameObject.SetActive(true);
             }
         }
         if( (reqTalant==null || reqTalant.MaxLvl == reqTalant.CurLvl) && curTalant.MaxLvl != curTalant.CurLvl)
