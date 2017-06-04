@@ -115,6 +115,10 @@ public class UIUpdater : MonoBehaviour {
 
     public void ChangeStateGameList()
     {
-        gameListPanel.transform.parent.gameObject.SetActive(!(gameListPanel.transform.parent.gameObject.activeInHierarchy));
+        gameListPanel.transform.parent.parent.gameObject.SetActive(!(gameListPanel.transform.parent.parent.gameObject.activeInHierarchy));
+    }
+    public void ChangeStateGO(GameObject go)
+    {
+        go.SetActive(!(go.activeInHierarchy));
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,13 +15,18 @@ public class GameManager : MonoBehaviour {
     public GameObject wallsMassive;//Объект на сцене для группировки стен
     public GameObject borderPrefab;
     public GameObject creationPoint;
-    
+    public GameObject infoPanel;
+    public Button learnButton;
+
     public Developer developer;
     public Development development;
 
     private bool gameCreation = false;
     private CreateManager createManager;
     private Game developGame;
+    private Talant lastSelectTalant;
+
+    public TreeTalant[] trees;
 	// Use this for initialization
 	void Start () {
         createManager = GetComponent<CreateManager>();
@@ -36,6 +42,7 @@ public class GameManager : MonoBehaviour {
         }
         Messenger.Broadcast<int>("Change Gold", developer.Gold);
         Messenger.Broadcast("Update Stats");
+        trees = TreeInit();
     }
 	
 	// Update is called once per frame
@@ -44,6 +51,10 @@ public class GameManager : MonoBehaviour {
         {
             developer.AddGame(developer.Games[developer.Games.Count-1]);
             Messenger.Broadcast<Developer>("Update Game List", developer);
+        }
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            File.WriteAllText(Application.dataPath + "/test.json", JsonConvert.SerializeObject(trees));
         }
         //Возможно перенесу все это в корутин!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!(оптимизация)
         if (gameCreation)
@@ -118,6 +129,7 @@ public class GameManager : MonoBehaviour {
         development = new Development(createManager.timeToDev);
         developGame = new Game(createManager.curPlatform, createManager.curGenre, createManager.curTheme, createManager.gameNameInput.text);
         createManager.gameNameInput.text = "";
+        createManager.OnGameNameChange();
         Messenger.Broadcast<bool>("Game Creation", gameCreation);
         Messenger.Broadcast<float>("Change Dev Slider", 0.0f);
         Messenger.Broadcast<int>("Change Gold", developer.Gold);
@@ -126,6 +138,7 @@ public class GameManager : MonoBehaviour {
 
     void Save()
     {
+        PlayerPrefs.SetString("Trees", JsonConvert.SerializeObject(trees));
         PlayerPrefs.SetString( "Developer", JsonUtility.ToJson(developer) );
         if (gameCreation)
         {
@@ -134,7 +147,7 @@ public class GameManager : MonoBehaviour {
             PlayerPrefs.SetString("DevelopGame", JsonUtility.ToJson(developGame) );
         }
         else PlayerPrefs.SetInt("GameCreation", 0);
-        Debug.Log(JsonUtility.ToJson(developer));
+        //Debug.Log(JsonUtility.ToJson(developer));
     }
 
     void Load()
@@ -149,6 +162,151 @@ public class GameManager : MonoBehaviour {
             gameCreation = true;
             Messenger.Broadcast<bool>("Game Creation", gameCreation);
         }
+    }
+
+    public TreeTalant[] TreeInit()
+    {
+        TreeTalant[] tt;
+        if (!PlayerPrefs.HasKey("Trees"))
+        {
+            tt = JsonConvert.DeserializeObject<TreeTalant[]>(File.ReadAllText(Application.dataPath + "/talants.json"));
+        }
+        else
+        {
+            tt = JsonConvert.DeserializeObject<TreeTalant[]>(PlayerPrefs.GetString("Trees"));
+        }
+        for (int i =0;i<tt.Length;i++)
+        {
+            GameObject treeGo = FindObject(tt[i].Name);
+            for(int j = 0; j < tt[i].Talants.Count; j++)
+            {
+                Talant curTalant = tt[i].Talants[j];
+                GameObject go = Instantiate(Resources.Load<GameObject>("Prefabs/Talant"));
+                go.transform.SetParent(treeGo.transform);
+                go.transform.localScale = new Vector3(1,1,1);
+                go.transform.name = curTalant.Name;
+                go.GetComponent<Image>().sprite = Resources.Load<Sprite>(curTalant.IconPath);
+                go.GetComponent<Button>().onClick.AddListener(delegate { OnInfoButton(go.transform.name); });
+                if(j!=0 && tt[i].Talants[j-1].MaxLvl != tt[i].Talants[j - 1].CurLvl)
+                {
+                    go.GetComponent<Image>().color = new Color(0.25f, 0.25f, 0.25f,1.0f);
+                }
+                if (curTalant.CurLvl == curTalant.MaxLvl)
+                {
+                    go.GetComponent<Image>().color = new Color(0, 1, 0);
+                }
+                go.GetComponentInChildren<Text>(true).text = curTalant.CurLvl.ToString();
+                if (curTalant.CurLvl > 0) go.GetComponentInChildren<Text>(true).gameObject.SetActive(true);
+                curTalant.CalculateMods();
+            }
+        }
+        return tt;
+    }
+
+    public void OnInfoButton(string nameClickedTalant)
+    {
+        learnButton.interactable = false;
+        Text[] stats = infoPanel.transform.GetChild(1).GetComponentsInChildren<Text>(true);
+        foreach(Text stat in stats)
+        {
+            stat.transform.parent.gameObject.SetActive(false);
+        }
+        Talant curTalant = null, reqTalant = null;
+        for (int i = 0; i < trees.Length; i++)
+        {
+            for(int j = 0; j < trees[i].Talants.Count; j++)
+            {
+                curTalant = trees[i].Talants[j];
+                if (j != 0) reqTalant = trees[i].Talants[j - 1];
+                if (curTalant.Name == nameClickedTalant) break;
+            }
+        }
+        lastSelectTalant = curTalant;
+        infoPanel.transform.GetChild(0).gameObject.GetComponent<Text>().text = nameClickedTalant + "\n\n" + curTalant.Description;
+        if(curTalant.MaxLvl != curTalant.CurLvl)
+        {
+            if (curTalant.ReqCode != 0)
+            {
+                stats[1].text = curTalant.ReqCode.ToString();
+                stats[1].transform.parent.gameObject.SetActive(true);
+            }
+            if (curTalant.ReqDesign != 0)
+            {
+                stats[2].text = curTalant.ReqDesign.ToString();
+                stats[2].transform.parent.gameObject.SetActive(true);
+            }
+            if (curTalant.ReqCreative != 0)
+            {
+                stats[3].text = curTalant.ReqCreative.ToString();
+                stats[3].transform.parent.gameObject.SetActive(true);
+            }
+            if (curTalant.ReqSound != 0)
+            {
+                stats[4].text = curTalant.ReqSound.ToString();
+                stats[4].transform.parent.gameObject.SetActive(true);
+            }
+        }
+        if( (reqTalant==null || reqTalant.MaxLvl == reqTalant.CurLvl) && curTalant.MaxLvl != curTalant.CurLvl)
+        {
+            learnButton.interactable = true;
+        }
+        infoPanel.SetActive(true);
+    }
+
+    public void OnLearnButton()
+    {
+        lastSelectTalant.LevelUp();
+        GameObject lastTalantGo = FindObject(lastSelectTalant.Name);
+        lastTalantGo.GetComponentInChildren<Text>(true).text = lastSelectTalant.CurLvl.ToString();
+        lastTalantGo.GetComponentInChildren<Text>(true).gameObject.SetActive(true);
+        if (lastSelectTalant.MaxLvl == lastSelectTalant.CurLvl)
+        {
+            lastTalantGo.GetComponent<Image>().color = new Color(0,1,0);
+            Talant refreshedTalant = null;
+            for (int i = 0; i < trees.Length; i++)
+            {
+                for (int j = 0; j < trees[i].Talants.Count; j++)
+                {
+                    if (j != trees[i].Talants.Count - 1 && lastSelectTalant == trees[i].Talants[j]) refreshedTalant = trees[i].Talants[j + 1];
+                }
+            }
+            if (refreshedTalant != null) FindObject(refreshedTalant.Name).GetComponent<Image>().color = new Color(1,1,1,1);
+        }
+        lastSelectTalant.CalculateMods();
+        OnInfoButton(lastSelectTalant.Name);
+    }
+
+    public int ReduceDevelopTime()
+    {
+        int deg = 0;
+        for (int i = 0; i < trees.Length; i++)
+        {
+            for (int j = 0; j < trees[i].Talants.Count; j++)
+            {
+                if (trees[i].Talants[j].CurLvl == 0) continue;
+                for(int k = 0; k < trees[i].Talants[j].Mods.Count; k++)
+                {
+                    if(trees[i].Talants[j].Mods[k].Name == ModifierName.DevelopTime)
+                    {
+                        deg += trees[i].Talants[j].Mods[k].BuffedRatio;
+                    }
+                }
+            }
+        }
+        return deg;
+    }
+
+    public GameObject FindObject(string name)
+    {
+        Transform[] trs = Resources.FindObjectsOfTypeAll<Transform>();
+        foreach (Transform t in trs)
+        {
+            if (t.name == name)
+            {
+                return t.gameObject;
+            }
+        }
+        return null;
     }
 
     IEnumerator GeneratePoints()

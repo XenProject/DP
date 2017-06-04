@@ -46,6 +46,14 @@ public class CreateManager : MonoBehaviour {
 		
 	}
 
+    public void DegOfTime()
+    {
+        timeToDev = new TimeSpan(0,0,30);
+        int deg = gameManager.ReduceDevelopTime();
+        timeToDev = TimeSpan.FromSeconds(timeToDev.TotalSeconds - ( timeToDev.TotalSeconds * (deg / 100.0f) ));
+        Messenger.Broadcast<TimeSpan>("Change Develop Time", timeToDev);
+    }
+
     public void OnPlatformChange()
     {
         curPlatform = (Game.Platform)platform.value;
