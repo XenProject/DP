@@ -5,13 +5,15 @@ using UnityEngine.UI;
 
 [System.Serializable]
 public class Talant{
+    public int ID;
+    public string TreeName;
     public string Name;
     public string IconPath;
     public int ReqCode;
     public int ReqDesign;
     public int ReqCreative;
     public int ReqSound;
-    public string ReqTalant;//строка?не использовать? сделать ИД?
+    public int ReqTalant;//строка?не использовать? сделать ИД?
     public int ReqGold;
     public List<Modifier> Mods;
     public string Description;
@@ -20,13 +22,15 @@ public class Talant{
 
     public Talant()
     {
+        ID = 0;
+        TreeName = "CodeTree";
         Name = "Default Talant";
         ReqCode = 0;
         ReqCreative = 0;
         ReqDesign = 0;
         ReqSound = 0;
         ReqGold = 0;
-        ReqTalant = "";
+        ReqTalant = -1;
         Mods = new List<Modifier>();
         Description = "";
         IconPath = "";

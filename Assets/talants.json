@@ -1,76 +1,71 @@
 [
-   {
-      "Name":"CodeTree",
-      "Talants":[
-         {
-            "Name":"Optimization",
-            "IconPath":"Sprites/UI/Talants/Code/talant1",
-            "ReqCode":5,
-            "ReqDesign":5,
-            "ReqCreative":0,
-            "ReqSound":0,
-            "ReqTalant":"",
-            "ReqGold":0,
-            "Mods":[
-               {
-                  "Name":0,
-                  "BaseRatio":1,
-				  "RatioPerLvl":2,
-				  "BuffedRatio": 0
-               }
-            ],
-            "Description":"Increase development speed 1/3/5 %",
-            "CurLvl":0,
-            "MaxLvl":3
-         },
-		 {
-            "Name":"I know (the) code",
-            "IconPath":"Sprites/UI/Talants/Code/talant3",
-            "ReqCode":10,
-            "ReqDesign":0,
-            "ReqCreative":0,
-            "ReqSound":10,
-            "ReqTalant":"Optimization",
-            "ReqGold":0,
-            "Mods":[
-               {
-                  "Name":2,
-                  "BaseRatio":5,
-				  "RatioPerLvl":5,
-				  "BuffedRatio": 0
-               }
-            ],
-            "Description":"Decrease bug chance and increase chance boost 6/10 %",
-            "CurLvl":0,
-            "MaxLvl":2
-         },
-         {
-            "Name":"Bug shall not pass",
-            "IconPath":"Sprites/UI/Talants/Code/talant2",
-            "ReqCode":3,
-            "ReqDesign":0,
-            "ReqCreative":3,
-            "ReqSound":0,
-            "ReqTalant":"I know (the) code",
-            "ReqGold":0,
-            "Mods":[
-               {
-                  "Name":2,
-                  "BaseRatio":6,
-				  "RatioPerLvl":2,
-				  "BuffedRatio": 0
-               }
-            ],
-            "Description":"Decrease bug chance and increase chance boost 6/8/10 %",
-            "CurLvl":0,
-            "MaxLvl":3
-         }
-      ]
-   },
-   {
-      "Name":"DesignTree",
-      "Talants":[
-
-      ]
-   }
+	{
+		"ID":0,
+		"TreeName":"CodeTree",
+		"Name":"Optimization",
+		"IconPath":"Sprites/UI/Talants/Code/talant1",
+		"ReqCode":5,
+		"ReqDesign":5,
+		"ReqCreative":0,
+		"ReqSound":0,
+		"ReqTalant":-1,
+		"ReqGold":0,
+		"Mods":[
+			{
+				"Name":0,
+				"BaseRatio":1,
+				"RatioPerLvl":2,
+				"BuffedRatio": 0
+			}
+		],
+		"Description":"Increase development speed 1/3/5 %",
+		"CurLvl":0,
+		"MaxLvl":3
+	},
+	{
+		"ID":1,
+		"TreeName":"CodeTree",
+        "Name":"I know (the) code",
+        "IconPath":"Sprites/UI/Talants/Code/talant3",
+        "ReqCode":10,
+        "ReqDesign":0,
+        "ReqCreative":0,
+        "ReqSound":10,
+        "ReqTalant":0,
+        "ReqGold":0,
+        "Mods":[
+            {
+                "Name":2,
+                "BaseRatio":5,
+				"RatioPerLvl":5,
+				"BuffedRatio": 0
+            }
+        ],
+        "Description":"Decrease bug chance and increase chance boost 6/10 %",
+        "CurLvl":0,
+        "MaxLvl":2
+	},
+    {
+		"ID":2,
+		"TreeName":"CodeTree",
+        "Name":"Bug shall not pass",
+        "IconPath":"Sprites/UI/Talants/Code/talant2",
+        "ReqCode":3,
+        "ReqDesign":0,
+        "ReqCreative":3,
+        "ReqSound":0,
+        "ReqTalant":1,
+        "ReqGold":0,
+        "Mods":[
+            {
+                "Name":2,
+                "BaseRatio":6,
+				"RatioPerLvl":2,
+				"BuffedRatio": 0
+            }
+        ],
+        "Description":"Decrease bug chance and increase chance boost 6/8/10 %",
+        "CurLvl":0,
+        "MaxLvl":3
+    }
 ]
