@@ -77,7 +77,24 @@ public class Game{
 
     public string Info()
     {
-        return "Game Name: " + this.Name + "\nPlatform: " + this.platform.ToString() + "\nGenre/Theme: " + this.genre.ToString()
-            + "/" + this.theme.ToString() + "\nRating: " + this.Rating.ToString("0.00");
+        return "<<" + this.Name + ">>" + "\n" + this.platform.ToString() + "\n" + this.genre.ToString()
+            + "/" + this.theme.ToString() + "\n<i>Rating: " + ColorFromRating(this.Rating) + this.Rating.ToString("0.00") + "</color></i>";
+    }
+
+    string ColorFromRating(float rating)
+    {
+        if (rating < 4.0f)
+        {
+            return "<color=#ff0000ff>";
+        }
+        if (rating < 7.0f)
+        {
+            return "<color=#ffff00ff>";
+        }
+        if (rating <= 10.0f)
+        {
+            return "<color=#00ff00ff>";
+        }
+        return "";
     }
 }

@@ -27,5 +27,6 @@ public enum ModifierName
     DevelopTime,//0
     CostOfGold,//1
     Income,//2
-    Rating//3
+    Rating,//3
+    IncreaseChancePoint//4
 }

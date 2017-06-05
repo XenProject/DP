@@ -16,6 +16,9 @@ public class UIUpdater : MonoBehaviour {
 
     public GameObject gameListPanel;
     public GameObject gamePrefab;
+    public GameObject talantTree2;
+    public Image genreIcon;
+    public Slider expSlider;
 
     private GameManager gm;
     public Text codeText;
@@ -85,8 +88,7 @@ public class UIUpdater : MonoBehaviour {
         go.transform.SetParent(gameListPanel.transform);
         go.transform.localScale = new Vector3(1, 1, 1);
         go.GetComponentInChildren<Text>().text = game.Info();
-        go.transform.GetChild(1).GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Platforms/" + game.platform.ToString());
-        //Debug.Log("Sprites/Platforms/" + game.GetPlatform.ToString());
+        go.transform.GetChild(1).GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/UI/Platforms/" + game.platform.ToString());
     }
 
     void UpdateGameList(Developer developer)
@@ -100,7 +102,7 @@ public class UIUpdater : MonoBehaviour {
             go.transform.SetParent(gameListPanel.transform);
             go.transform.localScale = new Vector3(1, 1, 1);
             go.GetComponentInChildren<Text>().text = developer.Games[i].Info();
-            go.transform.GetChild(1).GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Platforms/" + developer.Games[i].platform.ToString());
+            go.transform.GetChild(1).GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/UI/Platforms/" + developer.Games[i].platform.ToString());
         }
     }
 
@@ -117,8 +119,25 @@ public class UIUpdater : MonoBehaviour {
     {
         gameListPanel.transform.parent.parent.gameObject.SetActive(!(gameListPanel.transform.parent.parent.gameObject.activeInHierarchy));
     }
+
     public void ChangeStateGO(GameObject go)
     {
         go.SetActive(!(go.activeInHierarchy));
+    }
+
+    public void ActiveGenre(int genre)
+    {
+        GenreTree genreTree = gm.developer.GenreTrees[genre];
+        for (int i=0;i< Enum.GetValues(typeof(Game.Genre)).Length; i++)
+        {
+            talantTree2.transform.GetChild(i).gameObject.SetActive(false);
+            if(i==genre) talantTree2.transform.GetChild(i).gameObject.SetActive(true);
+        }
+        talantTree2.SetActive(true);
+        genreIcon.sprite = Resources.Load<Sprite>("Sprites/UI/Genres/" + ((Game.Genre)genre).ToString() );
+        genreIcon.GetComponentInChildren<Text>().text = genreTree.CurLvl.ToString(); 
+        expSlider.value = (float)genreTree.CurExp / genreTree.MaxExp;
+        expSlider.GetComponentInChildren<Text>().text = genreTree.CurExp.ToString() + "/" + genreTree.MaxExp.ToString();
+
     }
 }

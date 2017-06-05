@@ -13,34 +13,37 @@ public class GameManager : MonoBehaviour {
     public WallType[] wallTypes;//Типы стен
     public GameObject floorsMassive;//Объект на сцене для группировки полов
     public GameObject wallsMassive;//Объект на сцене для группировки стен
-    public GameObject borderPrefab;
-    public GameObject creationPoint;
-    public GameObject infoPanel;
-    public Button learnButton;
+    public GameObject borderPrefab;//Префаб границы пола
+    public GameObject creationPoint;//Префаб Поинтов
+    public GameObject infoPanel;//Панель с информацией о таланте
+    public Button learnButton;//Кнопка изучения таланта
 
-    public Developer developer;
-    public Development development;
+    public Developer developer;//Класс разработчика
+    public Development development;//Класс разработки
 
-    private bool gameCreation = false;
-    private CreateManager createManager;
-    private Game developGame;
-    private Talant lastSelectTalant;
+    private bool gameCreation = false;//Создается ли игра в данный момент?
+    private CreateManager createManager;//Подключаем скрипт
+    private Game developGame;//Разрабатываемая игра в данный момент
+    private Talant lastSelectTalant;//Последний нажатый талант
+    private int chanceToCreationPoint = 50;//Шанс появления Поинта
 
-    public Talant[] talants;
+    public Talant[] talants;//Массив талантов
 	// Use this for initialization
 	void Start () {
+        string talantsText = Resources.Load("talants", typeof(TextAsset)).ToString();
         createManager = GetComponent<CreateManager>();
         TileMap();
-        talants = JsonConvert.DeserializeObject<Talant[]>(File.ReadAllText(Application.dataPath + "/talants.json"));
-        if (PlayerPrefs.HasKey("Developer"))
+        talants = JsonConvert.DeserializeObject<Talant[]>(talantsText);//Загружаем таланты из json файла
+        if (PlayerPrefs.HasKey("Developer"))//Имеется ли сохранение
         {
-            Load();
+            Load();//Загрузка
             Messenger.Broadcast<Developer>("Update Game List", developer);
         }
         else
         {
-            developer = new Developer();
+            developer = new Developer();//Новый игрок
         }
+        //Обновляем UI
         Messenger.Broadcast<int>("Change Gold", developer.Gold);
         Messenger.Broadcast("Update Stats");
         TalantsUpdate();
@@ -48,25 +51,28 @@ public class GameManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        /**************Для Тестов**********************/
         if (Input.GetKeyDown(KeyCode.R))
         {
             developer.AddGame(developer.Games[developer.Games.Count-1]);
             Messenger.Broadcast<Developer>("Update Game List", developer);
         }
-        //Возможно перенесу все это в корутин!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!(оптимизация)
-        if (gameCreation)
+        /*********************************/
+        if (gameCreation)//Если создается игра
         {
-            if( development.DevelopmentEndTime > DateTime.Now)
+            if( development.DevelopmentEndTime > DateTime.Now)//И если время окончания разработки еще не наступило
             {
                 Messenger.Broadcast<float>("Change Dev Slider", (float)((createManager.timeToDev - 
                     (development.DevelopmentEndTime - DateTime.Now)).TotalSeconds / createManager.timeToDev.TotalSeconds));
             }
             else
-            {
+            {//Выпускаем игру
                 gameCreation = false;
                 Messenger.Broadcast<bool>("Game Creation", gameCreation);
                 StopCoroutine("GeneratePoints");
                 development.PublishGame(developer, developGame );
+                developer.GenreTrees[(int)developGame.genre].CurExp += (int)(120*developGame.Rating);
+                developer.GenreTrees[(int)developGame.genre].CheckLevelUp();
                 Messenger.Broadcast<Game>("Publish Game", developGame);
                 developGame = null;
                 development = null;
@@ -87,6 +93,7 @@ public class GameManager : MonoBehaviour {
             Save();
     }
 
+    //Создаем стены, пол и границы
     void TileMap()
     {
         int i = 0, j = 0;
@@ -130,11 +137,13 @@ public class GameManager : MonoBehaviour {
         Messenger.Broadcast<bool>("Game Creation", gameCreation);
         Messenger.Broadcast<float>("Change Dev Slider", 0.0f);
         Messenger.Broadcast<int>("Change Gold", developer.Gold);
+        CalculateChanceCreate();
         StartCoroutine("GeneratePoints");
     }
 
     void Save()
     {
+        PlayerPrefs.DeleteAll();
         PlayerPrefs.SetString( "Developer", JsonUtility.ToJson(developer) );
         if (gameCreation)
         {
@@ -171,6 +180,22 @@ public class GameManager : MonoBehaviour {
             if (id_lvl.ContainsKey(i))
             {
                 talants[i].CurLvl = id_lvl[i];
+            }
+        }
+    }
+
+    public void CalculateChanceCreate()
+    {
+        chanceToCreationPoint = 50;
+        for (int i = 0; i < talants.Length; i++)
+        {
+            if (talants[i].CurLvl == 0) continue;
+            for (int j = 0; j < talants[i].Mods.Count; j++)
+            {
+                if (talants[i].Mods[j].Name == ModifierName.IncreaseChancePoint)
+                {
+                    chanceToCreationPoint += talants[i].Mods[j].BuffedRatio;
+                }
             }
         }
     }
@@ -295,7 +320,7 @@ public class GameManager : MonoBehaviour {
     {
         while (true)
         {
-            if (UnityEngine.Random.Range(0, 2) == 1)
+            if (UnityEngine.Random.Range(0, 100) < chanceToCreationPoint)
             {
                 Instantiate(creationPoint);
                 development.AllPoints += 1;
