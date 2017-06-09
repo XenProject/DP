@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 
     public int N;
+    public Text nicknameText;
     public TileType[] tileTypes;//Типы пола
     public WallType[] wallTypes;//Типы стен
     public GameObject floorsMassive;//Объект на сцене для группировки полов
@@ -19,38 +21,32 @@ public class GameManager : MonoBehaviour {
     public Button learnButton;//Кнопка изучения таланта
 
     public Developer developer;//Класс разработчика
-    public Development development;//Класс разработки
-
-    private bool gameCreation = false;//Создается ли игра в данный момент?
+    private Game developGame;
+    
     private CreateManager createManager;//Подключаем скрипт
-    private Game developGame;//Разрабатываемая игра в данный момент
     private Talant lastSelectTalant;//Последний нажатый талант
     private int chanceToCreationPoint = 50;//Шанс появления Поинта
 
     public Talant[] talants;//Массив талантов
 	// Use this for initialization
-	void Start () {
+
+	void OnEnable () {
+        SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+    }
+
+    private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
+    {
+        nicknameText.text = GameObject.Find("SaveObject").GetComponent<SaveObject>().playerName;
+
         string talantsText = Resources.Load("talants", typeof(TextAsset)).ToString();
         createManager = GetComponent<CreateManager>();
-        TileMap();
+        //TileMap();
         talants = JsonConvert.DeserializeObject<Talant[]>(talantsText);//Загружаем таланты из json файла
-        if (PlayerPrefs.HasKey("Developer"))//Имеется ли сохранение
-        {
-            Load();//Загрузка
-            Messenger.Broadcast<Developer>("Update Game List", developer);
-        }
-        else
-        {
-            developer = new Developer();//Новый игрок
-        }
-        //Обновляем UI
-        Messenger.Broadcast<int>("Change Gold", developer.Gold);
-        Messenger.Broadcast("Update Stats");
-        TalantsUpdate();
+        StartCoroutine( Load() );//Загрузка
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update () {
         /**************Для Тестов**********************/
         if (Input.GetKeyDown(KeyCode.R))
         {
@@ -58,26 +54,18 @@ public class GameManager : MonoBehaviour {
             Messenger.Broadcast<Developer>("Update Game List", developer);
         }
         /*********************************/
-        if (gameCreation)//Если создается игра
+        if (developGame != null && developGame.IsCreated==1 )//Если создается игра
         {
-            if( development.DevelopmentEndTime > DateTime.Now)//И если время окончания разработки еще не наступило
+            if( developGame.DevelopmentEndTime > DateTime.Now)//И если время окончания разработки еще не наступило
             {
                 Messenger.Broadcast<float>("Change Dev Slider", (float)((createManager.timeToDev - 
-                    (development.DevelopmentEndTime - DateTime.Now)).TotalSeconds / createManager.timeToDev.TotalSeconds));
+                    (developGame.DevelopmentEndTime - DateTime.Now)).TotalSeconds / createManager.timeToDev.TotalSeconds));
             }
             else
             {//Выпускаем игру
-                gameCreation = false;
-                Messenger.Broadcast<bool>("Game Creation", gameCreation);
-                StopCoroutine("GeneratePoints");
-                development.PublishGame(developer, developGame );
-                developer.GenreTrees[(int)developGame.genre].CurExp += (int)(120*developGame.Rating);
-                developer.GenreTrees[(int)developGame.genre].CheckLevelUp();
-                Messenger.Broadcast<Game>("Publish Game", developGame);
                 developGame = null;
-                development = null;
-                //Debug.Log("Game Name: " + CurrentGame.Name + "\nBoost points: " + CurrentGame.BoostPoints + " Bugs: " + CurrentGame.Bugs + "\nAll Boost Points: " + CurrentGame.AllBoostPoints + "\nAll Points: " + CurrentGame.AllPoints);
-                //Debug.Log("Rating: " + CurrentGame.Rating);
+                StopCoroutine("GeneratePoints");
+                developer.PublishGame();
             }
         }
     }
@@ -128,15 +116,11 @@ public class GameManager : MonoBehaviour {
     }
 
     public void CreateProject()
-    {
-        gameCreation = true;
-        development = new Development(createManager.timeToDev);
-        developGame = new Game(createManager.curPlatform, createManager.curGenre, createManager.curTheme, createManager.gameNameInput.text);
-        createManager.gameNameInput.text = "";
-        createManager.OnGameNameChange();
-        Messenger.Broadcast<bool>("Game Creation", gameCreation);
-        Messenger.Broadcast<float>("Change Dev Slider", 0.0f);
-        Messenger.Broadcast<int>("Change Gold", developer.Gold);
+    {  
+        developGame = developer.LastGame();
+        
+        Messenger.Broadcast<int>("Game Creation", developGame.IsCreated);
+        //Messenger.Broadcast<float>("Change Dev Slider", 0.0f);
         CalculateChanceCreate();
         StartCoroutine("GeneratePoints");
     }
@@ -144,14 +128,7 @@ public class GameManager : MonoBehaviour {
     void Save()
     {
         PlayerPrefs.DeleteAll();
-        PlayerPrefs.SetString( "Developer", JsonUtility.ToJson(developer) );
-        if (gameCreation)
-        {
-            PlayerPrefs.SetInt("GameCreation", 1);
-            PlayerPrefs.SetString("Development", JsonConvert.SerializeObject(development) );
-            PlayerPrefs.SetString("DevelopGame", JsonUtility.ToJson(developGame) );
-        }
-        else PlayerPrefs.SetInt("GameCreation", 0);
+        PlayerPrefs.SetString( "Developer", JsonConvert.SerializeObject(developer) );
 
         Dictionary<int, int> id_lvl = new Dictionary<int, int>();
         for (int i = 0; i < talants.Length; i++)
@@ -162,17 +139,13 @@ public class GameManager : MonoBehaviour {
         PlayerPrefs.SetString("Talants", JsonConvert.SerializeObject(id_lvl));
     }
 
-    void Load()
+    /*void Load()
     {
         Debug.Log("Load!");
-        developer = JsonUtility.FromJson<Developer>(PlayerPrefs.GetString("Developer"));
-        if(PlayerPrefs.GetInt("GameCreation") == 1)
+        developer = JsonConvert.DeserializeObject<Developer>(PlayerPrefs.GetString("Developer"));
+        if(developer.LastGame()!=null && developer.LastGame().IsCreated == true)
         {
-            developGame = JsonUtility.FromJson<Game>(PlayerPrefs.GetString("DevelopGame"));
-            development = JsonConvert.DeserializeObject<Development>(PlayerPrefs.GetString("Development"));
-            StartCoroutine("GeneratePoints");
-            gameCreation = true;
-            Messenger.Broadcast<bool>("Game Creation", gameCreation);
+            CreateProject();
         }
         Dictionary<int, int> id_lvl = JsonConvert.DeserializeObject<Dictionary<int, int>>( PlayerPrefs.GetString("Talants") );
         for(int i = 0; i < talants.Length; i++)
@@ -182,6 +155,26 @@ public class GameManager : MonoBehaviour {
                 talants[i].CurLvl = id_lvl[i];
             }
         }
+    }*/
+    IEnumerator Load()
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("playername", GameObject.Find("SaveObject").GetComponent<SaveObject>().playerName);
+        WWW www = new WWW("http://192.168.1.35/Game/Load.php", form);
+        yield return www;
+        //Debug.Log(www.text);
+        string[] tmp = www.text.Split('\n');
+        developer = JsonConvert.DeserializeObject<Developer>(tmp[0]);
+        developer.SetGenreTrees( JsonConvert.DeserializeObject<GenreTree[]>(tmp[1]) );
+        developer.Games = JsonConvert.DeserializeObject<List<Game>>(tmp[2]);
+        if (developer.LastGame() != null && developer.LastGame().IsCreated == 1)
+        {
+            CreateProject();
+        }
+        Messenger.Broadcast<int>("Change Gold", 0);
+        Messenger.Broadcast<Developer>("Update Game List", developer);
+        Messenger.Broadcast("Update Stats");
+        TalantsUpdate();
     }
 
     public void CalculateChanceCreate()
@@ -323,7 +316,6 @@ public class GameManager : MonoBehaviour {
             if (UnityEngine.Random.Range(0, 100) < chanceToCreationPoint)
             {
                 Instantiate(creationPoint);
-                development.AllPoints += 1;
             }
             //Debug.Log(UnityEngine.Random.Range(0, 2));
             yield return new WaitForSeconds(1.0f);

@@ -31,7 +31,6 @@ public class CreationPoint : MonoBehaviour {
         if (isGood)
         {
             GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/UI/Buttons/boostbutton");
-            gameManager.development.AllBoostPoints += 1;
         }
         else
         {
@@ -47,9 +46,9 @@ public class CreationPoint : MonoBehaviour {
         PointMotion();
     }
 
-    private void OnMouseDown()
+    public void OnMouseDown()
     {
-        Clicked();
+        StartCoroutine( Clicked() );
     }
 
     void PointMotion()
@@ -67,16 +66,22 @@ public class CreationPoint : MonoBehaviour {
         }
     }
 
-    public void Clicked()
+    IEnumerator Clicked()
     {
-        DestroyImmediate(gameObject);
+        WWWForm form = new WWWForm();
+        form.AddField("playername", GameObject.Find("SaveObject").GetComponent<SaveObject>().playerName);
         if (isGood)
         {
-            gameManager.development.BoostPoints += 1;
+            gameManager.developer.LastGame().BoostPoints += 1;
+            form.AddField("boost", "1");
         }
         else
         {
-            gameManager.development.Bugs += 1;
+            gameManager.developer.LastGame().Bugs += 1;
+            form.AddField("bug", "1");
         }
+        WWW www = new WWW("http://192.168.1.35/Game/AddPoint.php", form);
+        yield return www;
+        DestroyImmediate(gameObject);
     }
 }

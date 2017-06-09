@@ -100,7 +100,10 @@ public class CreateManager : MonoBehaviour {
 
     public void OnGameCreationClicked()
     {
-        gameManager.developer.Gold -= goldToDevelopment;
+        Messenger.Broadcast<int>("Change Gold", -goldToDevelopment);
+        gameManager.developer.AddGame(new Game(curPlatform, curGenre, curTheme, gameNameInput.text, timeToDev));
+        gameNameInput.text = "";
+        OnGameNameChange();
         gameManager.CreateProject();
     }
 

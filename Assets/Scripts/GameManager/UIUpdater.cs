@@ -29,7 +29,7 @@ public class UIUpdater : MonoBehaviour {
     void Awake () {
         Messenger.AddListener<int>("Change Gold", OnChangeGold);
         Messenger.AddListener<float>("Change Dev Slider", OnChangeDevSlider);
-        Messenger.AddListener<bool>("Game Creation", GameCreation);
+        Messenger.AddListener<int>("Game Creation", GameCreation);
         Messenger.AddListener<TimeSpan>("Change Develop Time", OnChangeTimeOfDevelop);
         Messenger.AddListener<Game>("Publish Game", OnPublishGame);
         Messenger.AddListener<Developer>("Update Game List", UpdateGameList);
@@ -48,7 +48,12 @@ public class UIUpdater : MonoBehaviour {
 
     void OnChangeGold(int gold)
     {
-        developerGoldText.text = gold.ToString();
+        GetComponent<GameManager>().developer.Gold += gold;
+        WWWForm form = new WWWForm();
+        form.AddField("playername", GameObject.Find("SaveObject").GetComponent<SaveObject>().playerName);
+        form.AddField("gold", GetComponent<GameManager>().developer.Gold);
+        WWW www = new WWW("http://192.168.1.35/Game/ChangeGold.php", form);
+        developerGoldText.text = GetComponent<GameManager>().developer.Gold.ToString();
     }
 
     void OnChangeDevSlider(float value)
@@ -57,8 +62,10 @@ public class UIUpdater : MonoBehaviour {
         developSlider.GetComponentInChildren<Text>().text = ((int)(developSlider.GetComponent<Slider>().value * 100)).ToString() + "%";
     }
 
-    void GameCreation(bool isCreation)
+    void GameCreation(int i)
     {
+        bool isCreation;
+        if (i == 1) isCreation = true; else isCreation = false;
         newGameButton.SetActive(!isCreation);
         developSlider.transform.parent.gameObject.SetActive(isCreation);
         if (!isCreation)
@@ -98,11 +105,14 @@ public class UIUpdater : MonoBehaviour {
         }
         for(int i = 0; i < developer.Games.Count; i++)
         {
-            GameObject go = Instantiate(gamePrefab);
-            go.transform.SetParent(gameListPanel.transform);
-            go.transform.localScale = new Vector3(1, 1, 1);
-            go.GetComponentInChildren<Text>().text = developer.Games[i].Info();
-            go.transform.GetChild(1).GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/UI/Platforms/" + developer.Games[i].platform.ToString());
+            if (developer.Games[i].IsCreated == 0)
+            {
+                GameObject go = Instantiate(gamePrefab);
+                go.transform.SetParent(gameListPanel.transform);
+                go.transform.localScale = new Vector3(1, 1, 1);
+                go.GetComponentInChildren<Text>().text = developer.Games[i].Info();
+                go.transform.GetChild(1).GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/UI/Platforms/" + developer.Games[i].platform.ToString());
+            }
         }
     }
 

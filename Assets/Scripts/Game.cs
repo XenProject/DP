@@ -6,12 +6,17 @@ using UnityEngine;
 [Serializable]
 public class Game{
 
+    public int IsCreated;
+
     public Platform platform;
     public Genre genre;
     public Theme theme;
+
     public string Name;
-    public float Synergy;
     public float Rating;
+    public DateTime DevelopmentEndTime;
+    public int BoostPoints;
+    public int Bugs;
 
     /********************************************/
     public enum Platform
@@ -42,38 +47,31 @@ public class Game{
     }
     /*****************************************/
     /******************Constructor**********************************/
-    public Game()
+
+    public void CalculateDevelopEndTime(TimeSpan time)
     {
-        platform = 0;
-        genre = 0;
-        theme = 0;
-        Name = "Default";
-        Rating = 0;
-        CalculateSynergy();
+        DevelopmentEndTime = DateTime.Now + time;
     }
 
-    public Game(Platform platform, Genre genre, Theme theme, string name)
+    public void CalculateRating()
     {
+        if (BoostPoints * 0.2f > 3) Rating += 3; else Rating += BoostPoints * 0.2f;
+        this.Rating += (5.0f - Bugs/3.0f);
+    }
+
+    public Game(Platform platform, Genre genre, Theme theme, string name, TimeSpan timeToDev)
+    {
+        this.IsCreated = 1;
         this.platform = platform;
         this.genre = genre;
         this.theme = theme;
-        Name = name;
-        Rating = 0;
-        CalculateSynergy();
+        this.BoostPoints = 0;
+        this.Bugs = 0;
+        this.Name = name;
+        this.Rating = 0;
+        CalculateDevelopEndTime(timeToDev);
     }
     /*******************************************/
-
-    public void CalculateSynergy()
-    {
-        if (genre == Genre.RPG && theme == Theme.Adventure)
-        {
-            Synergy = 1;
-        }
-        else
-        {
-            Synergy = 0.75f;
-        }
-    }
 
     public string Info()
     {
